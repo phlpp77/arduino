@@ -1,11 +1,25 @@
+#define ledPin 12
+#define switchPin 10
+int switchState = 0;
+bool safeState = false;
+
 void setup() {
   // put your setup code here, to run once:
-  pinMode(10, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(switchPin, INPUT);
 }
 
 void loop() {
-  digitalWrite(10, HIGH); // on
-  delay(2000);
-  digitalWrite(10, LOW); // off
-  delay(4000);
+  switchState = digitalRead(switchPin);
+  if (switchState == 1) {
+    safeState = !safeState;
+  }
+  if (safeState == 1) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, HIGH);  // on
+    delay(500);
+    digitalWrite(ledPin, LOW);  // off
+    delay(1000);
+  }
 }
