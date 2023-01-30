@@ -7,12 +7,17 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(ledPin, OUTPUT);
   pinMode(switchPin, INPUT);
+  Serial.begin(9600);
 }
 
 void loop() {
   switchState = digitalRead(switchPin);
+  Serial.print("Sw state: ");
+  Serial.println(switchState);
   if (switchState == 1) {
-    safeState = !safeState;
+    safeState = true;
+    Serial.print("Safe state: ");
+    Serial.println(safeState);
   }
   if (safeState == 1) {
     digitalWrite(ledPin, HIGH);
