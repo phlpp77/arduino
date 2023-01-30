@@ -1,15 +1,18 @@
-#define lightSensor A0
-int lightValue = 0;
+#define sensorPin A0
+#define ledPin 11
+int sensorValue = 0;
 
 void setup() {
-  pinMode(lightSensor, INPUT);
+  pinMode(sensorPin, INPUT);
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
 }
 
 void loop() {
-  lightValue = analogRead(lightSensor);
-  Serial.print("Light value: ");
-  Serial.println(lightValue);
+  sensorValue = analogRead(sensorPin);
+  analogWrite(ledPin, sensorValue - 800);
+  Serial.print("Sensor value: ");
+  Serial.println(sensorValue);
   // put your main code here, to run repeatedly:
   delay(2);
 
