@@ -9,8 +9,14 @@
 // Define button pin
 #define buttonPin 7  // Define the button to be pin 7
 
-// Define variables for if statements
-int buttonState = 0;
+// Define potentiometer pin
+#define potentiometerPin A0
+
+// Define variable for if statement
+int buttonState = 0; // If button is pressed == 1 or not == 0
+
+// Define variable for sensor value
+int potentiometerValue = 0;
 
 // Create servo object to use later
 Servo myServo;
@@ -24,6 +30,9 @@ void setup() {
   // Set pinmode of button pin to input
   pinMode(buttonPin, INPUT);
 
+  // Set pinmode for potentiometer to input
+  pinMode(potentiometerPin, INPUT);
+
   // Setup servo at pin 6 (needs to support PWM)
   myServo.attach(6);
 }
@@ -32,6 +41,11 @@ void loop() {
 
   // Check if button is pressed buttonState == 1 or not == 0
   buttonState = digitalRead(buttonPin);
+
+  // Read value from potentiometer
+  potentiometerValue = analogRead(potentiometerPin);
+  // Map values from potentiometer to allowed values of servo
+  potentiometerValue = map(potentiometerValue, 0, 1023, 20, 160); 
 
   // If the button is pressed (buttonState ==1) do everything inside {}
   if (buttonState == 1) {
@@ -46,8 +60,8 @@ void loop() {
     // Pause for 3s (3000ms)
     delay(3000);
 
-    // Rotate servo by 90deg
-    myServo.write(-90);
+    // Rotate servo by potentiometer value
+    myServo.write(-potentiometerValue);
 
     // Flash LEDs from right to left
     digitalWrite(redLedPin, HIGH);  // Red on
@@ -68,8 +82,8 @@ void loop() {
     // Pause 5s (5000ms)
     delay(5000);
 
-    // Reverse servo by 90deg
-    myServo.write(90);
+    // Reverse servo by potentiometer value
+    myServo.write(potentiometerValue);
 
     // Flash LEDs from left to right
     digitalWrite(greenLedPin, HIGH);  // Green on
