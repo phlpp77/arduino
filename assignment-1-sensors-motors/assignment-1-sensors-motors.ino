@@ -1,3 +1,4 @@
+// Philipp Hemkemeyer, gtID: 903840326
 // Include the servo library to interact with servo
 #include <Servo.h>  // Servo library can now be used
 
@@ -86,5 +87,8 @@ void loop() {
     delay(500);
     digitalWrite(redLedPin, LOW);  // Red off
     delay(500);
+
+    // Pause 3s (3000ms)
+    delay(3000);
   }
 }
