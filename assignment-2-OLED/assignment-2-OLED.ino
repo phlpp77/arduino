@@ -49,6 +49,9 @@ int redButtonState = 0;
 // Current menu selection
 int menuSelection = 0;
 
+// Setup for LED
+#define LED_PIN 9
+
 static const unsigned char PROGMEM logo_bmp[] = { 0b00000000, 0b11000000,
                                                   0b00000001, 0b11000000,
                                                   0b00000001, 0b11000000,
@@ -79,6 +82,9 @@ void setup() {
   // Initialize button pins
   pinMode(BUTTON_PIN_YELLOW, INPUT);
   pinMode(BUTTON_PIN_RED, INPUT);
+
+  // Initialize LED pin
+  pinMode(LED_PIN, OUTPUT);
 
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
@@ -132,6 +138,7 @@ void loop() {
     switch (menuSelection) {
       case 0:  // Open first option
         showFirstScreen();
+        blinkLED();
         break;
       case 1:  // Open second option
         showSecondScreen();
@@ -177,7 +184,14 @@ void showFirstScreen(void) {
 }
 
 
-
+void blinkLED(void) {
+  for (int i = 0; i <= 2; i += 1) {
+    digitalWrite(LED_PIN, HIGH);  // On
+    delay(500);
+    digitalWrite(LED_PIN, LOW);  // Off
+    delay(500);
+  }
+}
 
 
 
