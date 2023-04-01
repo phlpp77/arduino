@@ -61,7 +61,7 @@
 // using the breakout board's microSD card.
 
 // For 1.44" and 1.8" TFT with ST7735 use:
-// Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 // For 1.14", 1.3", 1.54", 1.69", and 2.0" TFT with ST7789:!!
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);!!
@@ -69,11 +69,11 @@
 
 // OPTION 2 lets you interface the display using ANY TWO or THREE PINS,
 // tradeoff being that performance is not as fast as hardware SPI above.
-#define TFT_MOSI 11  // Data out
-#define TFT_SCLK 13  // Clock out
+// #define TFT_MOSI 11  // Data out
+// #define TFT_SCLK 13  // Clock out
 
 // For ST7735-based displays, we will use this call
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+// Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
 // OR for the ST7789-based displays, we will use this call
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
@@ -81,9 +81,34 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RS
 
 float p = 3.1415926;
 
+class Product {
+public:
+
+  // Values of product
+  int id;
+  String name;
+  int station;
+  String hint1;
+  String hint2;
+
+  // Full Initializer
+  Product(int a, String b, int c, String d, String e) {
+    id = a;
+    name = b;
+    station = c;
+    hint1 = d;
+    hint2 = e;
+  }
+};
+
+
+
+/* Setup when Arudino starts */
 void setup(void) {
-  Serial.begin(9600);
+  Serial.begin(9600);  // Start serial connection to computer for print etc.
   Serial.print(F("Hello! ST77xx TFT Test"));
+
+
 
   // Use this initializer if using a 1.8" TFT screen: !!
   // tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab !!
@@ -172,6 +197,12 @@ void setup(void) {
 
   Serial.println("done");
   delay(1000);
+
+  // PROGRAM START
+
+  startUpScreen();
+
+  showText("Scan first item at home");
 }
 
 void loop() {
@@ -180,6 +211,30 @@ void loop() {
   tft.invertDisplay(false);
   delay(500);
 }
+
+/* Initialize product array */
+void setupProductArray() {
+  Product products[10] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");  // Create array of products with max size of 10
+}
+
+/* Show the startup screen logo */
+void startUpScreen() {
+  // show bitmap logo here
+  delay(4000);
+}
+
+/* Shows text on screen in white */
+void showText(char *text) {
+  tft.setCursor(0, 0);
+  tft.setTextColor(ST77XX_WHITE);
+  tft.setTextWrap(true);
+  tft.print(text);
+}
+
+
+
+
+
 
 void testlines(uint16_t color) {
   tft.fillScreen(ST77XX_BLACK);
