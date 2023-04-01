@@ -32,10 +32,17 @@
   MIT license, all text above must be included in any redistribution
  **************************************************************************/
 
+// using namespace std;
+
+/* LCD display setup */
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <Adafruit_ST7789.h>  // Hardware-specific library for ST7789
 #include <SPI.h>
+
+
+
+
 
 // #if defined(ARDUINO_FEATHER_ESP32)  // Feather Huzzah32
 // #define TFT_CS 14
@@ -78,6 +85,26 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 // OR for the ST7789-based displays, we will use this call
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
+/* RFID setup */
+#include <Wire.h>
+#include "SparkFun_Qwiic_Rfid.h"
+#define RFID_ADDR 0x7D  // Default I2C address
+
+Qwiic_Rfid myRfid(RFID_ADDR);
+
+String tag;
+int serialInput;
+bool state;
+
+/* Light sensor setup */
+#define recyclingStationPin A0
+#define landfillStationPin A1
+#define compostStationPin A2
+#define charmStationPin A3
+int recyclingStationValue = 0;
+int landfillStationValue = 0;
+int compostStationValue = 0;
+int charmStationValue = 0;
 
 float p = 3.1415926;
 
@@ -147,6 +174,7 @@ void setup(void) {
 
   Serial.println(F("Initialized"));
 
+
   uint16_t time = millis();
   tft.fillScreen(ST77XX_BLACK);
   time = millis() - time;
@@ -200,21 +228,66 @@ void setup(void) {
 
   // PROGRAM START
 
-  startUpScreen();
+  startUpScreen();      // Show the logo at start
+  setupRFID();          // Initialize the RFID scanner
+  setupLightSensors();    // Initialize light sensors
+  setupProductArray();  // Initialize the products
 
+
+  // Start with the interactions
   showText("Scan first item at home");
 }
 
+
+
+/* Main game logic loop */
 void loop() {
   tft.invertDisplay(true);
   delay(500);
   tft.invertDisplay(false);
   delay(500);
+
+  tag = myRfid.getTag();  // Read the current tag
+  readLightSensorValues(); // Read the light sensors at the stations
+  if (recyclingStationValue == 000) { // TODO: Fix value
+
+  }
+  
+  if (tag != "000000") {
+    Serial.print("Tag ID: ");
+    Serial.println(tag);
+  }
+}
+
+
+
+/* Initialize RFID scanner */
+void setupRFID() {
+  // Begin I-squared-C
+  Wire.begin();
+  Serial.begin(115200);
+
+  if (myRfid.begin())
+    Serial.println("Ready to scan some tags!");
+  else
+    Serial.println("Could not communicate with Qwiic RFID!");
+
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+/* Initialize light sensors */
+void setupLightSensors() {
+  pinMode(recyclingStationPin, INPUT);
+  pinMode(landfillStationPin, INPUT);
+  pinMode(compostStationPin, INPUT);
+  pinMode(charmStationPin, INPUT);
 }
 
 /* Initialize product array */
 void setupProductArray() {
-  Product products[10] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");  // Create array of products with max size of 10
+  // std::map<int, char> products;
+  // products[000] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");
+  // Product products[10] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");  // Create array of products with max size of 10
 }
 
 /* Show the startup screen logo */
@@ -231,6 +304,13 @@ void showText(char *text) {
   tft.print(text);
 }
 
+/* Read and update sensor values */
+void readLightSensorValues() {
+  recyclingStationValue = analogRead(recyclingStationPin);
+  landfillStationValue = analogRead(landfillStationPin);
+  compostStationValue = analogRead(compostStationPin);
+  charmStationValue = analogRead(charmStationPin);
+}
 
 
 
