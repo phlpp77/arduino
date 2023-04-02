@@ -250,13 +250,11 @@ void loop() {
   tag = myRfid.getTag();  // Read the current tag
   readLightSensorValues(); // Read the light sensors at the stations
   if (recyclingStationValue == 000) { // TODO: Fix value
-
+// item arrived at recylcing station
+// check if it is the correct item by going into the tag and station
   }
   
-  if (tag != "000000") {
-    Serial.print("Tag ID: ");
-    Serial.println(tag);
-  }
+  
 }
 
 
