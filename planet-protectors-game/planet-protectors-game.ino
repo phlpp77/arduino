@@ -32,82 +32,51 @@
   MIT license, all text above must be included in any redistribution
  **************************************************************************/
 
-// using namespace std;
 
 /* LCD display setup */
+
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <Adafruit_ST7789.h>  // Hardware-specific library for ST7789
 #include <SPI.h>
 
-
-
-
-
-// #if defined(ARDUINO_FEATHER_ESP32)  // Feather Huzzah32
-// #define TFT_CS 14
-// #define TFT_RST 15
-// #define TFT_DC 32
-
-// #elif defined(ESP8266)
-// #define TFT_CS 4
-// #define TFT_RST 16
-// #define TFT_DC 5
-
-// #else
-// For the breakout board, you can use any 2 or 3 pins.
 // These pins will also work for the 1.8" TFT shield.
 #define TFT_CS 10
 #define TFT_RST 9  // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC 8
-// #endif
-
-// OPTION 1 (recommended) is to use the HARDWARE SPI pins, which are unique
-// to each board and not reassignable. For Arduino Uno: MOSI = pin 11 and
-// SCLK = pin 13. This is the fastest mode of operation and is required if
-// using the breakout board's microSD card.
 
 // For 1.44" and 1.8" TFT with ST7735 use:
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
-// For 1.14", 1.3", 1.54", 1.69", and 2.0" TFT with ST7789:!!
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);!!
-
-
-// OPTION 2 lets you interface the display using ANY TWO or THREE PINS,
-// tradeoff being that performance is not as fast as hardware SPI above.
-// #define TFT_MOSI 11  // Data out
-// #define TFT_SCLK 13  // Clock out
-
-// For ST7735-based displays, we will use this call
-// Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
-
-// OR for the ST7789-based displays, we will use this call
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
 /* RFID setup */
+
 #include <Wire.h>
 #include "SparkFun_Qwiic_Rfid.h"
 #define RFID_ADDR 0x7D  // Default I2C address
 
-Qwiic_Rfid myRfid(RFID_ADDR);
+Qwiic_Rfid myRfid(RFID_ADDR);  // Create the RFID reader object
+String currentTag;             // Create variable to hold current tag number
 
-String currentTag;
-int serialInput;
-bool state;
 
 /* Light sensor setup */
-#define recyclingStationPin A0
+
+// Set analog pins to receive the lightsensor data
+#define recyclingStationPin A0 
 #define landfillStationPin A1
 #define compostStationPin A2
 #define charmStationPin A3
+
+// Initialize value variables
 int recyclingStationValue = 0;
 int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
 
-float p = 3.1415926;
 
+/* Product class and array */
+
+// Setup class to read the products data
 class Product {
 public:
 
@@ -128,7 +97,9 @@ public:
   }
 };
 
-#define PRODUCT_COUNT 3
+#define PRODUCT_COUNT 3 // Array lengeth - amount of products we use
+
+// Array of products that are used with id being the RFID-tag number
 Product products[] = {
   Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
   Product("132051153205227", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
@@ -136,14 +107,11 @@ Product products[] = {
 };
 
 
-
 /* Setup when Arudino starts */
 void setup(void) {
   Serial.begin(9600);  // Start serial connection to computer for print etc.
-  Serial.print(F("Hello! ST77xx TFT Test"));
 
   tft.initR(INITR_BLACKTAB);  // Init ST7735S chip, black tab
-
 
   Serial.println(F("Initialized"));
 
@@ -180,14 +148,13 @@ void loop() {
     Serial.println(currentTag);
   }
   readLightSensorValues();  // Read the light sensors at the stations
-  // Serial.print("Recycling station value: ");
-  // Serial.println(recyclingStationValue);
-  if (currentTag == "13205111514375") {
-    clearDisplay();
-    showText("You found the milk");
-    delay(2000);
-    clearDisplay();
-  }
+
+  // if (currentTag == "13205111514375") {
+  //   clearDisplay();
+  //   showText("You found the milk");
+  //   delay(2000);
+  //   clearDisplay();
+  // }
 
   /* Check recycling station */
   if (recyclingStationValue <= 50) {
@@ -284,7 +251,7 @@ void showWrong(bool firstTry, int product) {
     readLightSensorValues();
     Serial.println(recyclingStationValue);
   }
-  
+
   clearDisplay();
 }
 
@@ -459,7 +426,7 @@ void tftPrintTest() {
   tft.println("Hello World!");
   tft.setTextSize(1);
   tft.setTextColor(ST77XX_GREEN);
-  tft.print(p, 6);
+  // tft.print(p, 6);
   tft.println(" Want pi?");
   tft.println(" ");
   tft.print(8675309, HEX);  // print 8,675,309 out in HEX!
