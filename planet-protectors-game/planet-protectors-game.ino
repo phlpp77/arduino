@@ -112,20 +112,29 @@ class Product {
 public:
 
   // Values of product
-  int id;
+  String id;
   String name;
   int station;
   String hint1;
   String hint2;
 
+  // Product() {}
+
   // Full Initializer
-  Product(int a, String b, int c, String d, String e) {
+  Product(String a, String b, int c, String d, String e) {
     id = a;
     name = b;
     station = c;
     hint1 = d;
     hint2 = e;
   }
+};
+
+#define PRODUCT_COUNT 3
+Product products[] = {
+  Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
+  Product("123", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
+  Product("123", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
 };
 
 
@@ -138,13 +147,13 @@ void setup(void) {
 
 
   // Use this initializer if using a 1.8" TFT screen: !!
-  // tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab !!
+  tft.initR(INITR_BLACKTAB);  // Init ST7735S chip, black tab !!
 
   // OR use this initializer if using a 1.8" TFT screen with offset such as WaveShare:
   // tft.initR(INITR_GREENTAB);      // Init ST7735S chip, green tab
 
   // OR use this initializer (uncomment) if using a 1.44" TFT:
-  tft.initR(INITR_144GREENTAB);  // Init ST7735R chip, green tab
+  // tft.initR(INITR_144GREENTAB);  // Init ST7735R chip, green tab
 
   // OR use this initializer (uncomment) if using a 0.96" 160x80 TFT:
   //tft.initR(INITR_MINI160x80);  // Init ST7735S mini display
@@ -175,53 +184,53 @@ void setup(void) {
   Serial.println(F("Initialized"));
 
 
-  uint16_t time = millis();
-  tft.fillScreen(ST77XX_BLACK);
-  time = millis() - time;
+  // uint16_t time = millis();
+  // tft.fillScreen(ST77XX_BLACK);
+  // time = millis() - time;
 
-  Serial.println(time, DEC);
-  delay(500);
+  // Serial.println(time, DEC);
+  // delay(500);
 
-  // large block of text
-  tft.fillScreen(ST77XX_BLACK);
-  testdrawtext("Recycling is cool! Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
-  delay(1000);
+  // // large block of text
+  // tft.fillScreen(ST77XX_BLACK);
+  // testdrawtext("Recycling is cool! Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
+  // delay(1000);
 
-  // tft print function!
-  tftPrintTest();
-  delay(4000);
+  // // tft print function!
+  // tftPrintTest();
+  // delay(4000);
 
-  // a single pixel
-  tft.drawPixel(tft.width() / 2, tft.height() / 2, ST77XX_GREEN);
-  delay(500);
+  // // a single pixel
+  // tft.drawPixel(tft.width() / 2, tft.height() / 2, ST77XX_GREEN);
+  // delay(500);
 
-  // line draw test
-  testlines(ST77XX_YELLOW);
-  delay(500);
+  // // line draw test
+  // testlines(ST77XX_YELLOW);
+  // delay(500);
 
-  // optimized lines
-  testfastlines(ST77XX_RED, ST77XX_BLUE);
-  delay(500);
+  // // optimized lines
+  // testfastlines(ST77XX_RED, ST77XX_BLUE);
+  // delay(500);
 
-  testdrawrects(ST77XX_GREEN);
-  delay(500);
+  // testdrawrects(ST77XX_GREEN);
+  // delay(500);
 
-  testfillrects(ST77XX_YELLOW, ST77XX_MAGENTA);
-  delay(500);
+  // testfillrects(ST77XX_YELLOW, ST77XX_MAGENTA);
+  // delay(500);
 
-  tft.fillScreen(ST77XX_BLACK);
-  testfillcircles(10, ST77XX_BLUE);
-  testdrawcircles(10, ST77XX_WHITE);
-  delay(500);
+  // tft.fillScreen(ST77XX_BLACK);
+  // testfillcircles(10, ST77XX_BLUE);
+  // testdrawcircles(10, ST77XX_WHITE);
+  // delay(500);
 
-  testroundrects();
-  delay(500);
+  // testroundrects();
+  // delay(500);
 
   testtriangles();
   delay(500);
 
-  mediabuttons();
-  delay(500);
+  // mediabuttons();
+  // delay(500);
 
   Serial.println("done");
   delay(1000);
@@ -230,10 +239,10 @@ void setup(void) {
 
   startUpScreen();      // Show the logo at start
   setupRFID();          // Initialize the RFID scanner
-  setupLightSensors();    // Initialize light sensors
+  setupLightSensors();  // Initialize light sensors
   setupProductArray();  // Initialize the products
 
-
+  tft.fillScreen(0x0000);
   // Start with the interactions
   showText("Scan first item at home");
 }
@@ -248,13 +257,31 @@ void loop() {
   delay(500);
 
   tag = myRfid.getTag();  // Read the current tag
-  readLightSensorValues(); // Read the light sensors at the stations
-  if (recyclingStationValue == 000) { // TODO: Fix value
-// item arrived at recylcing station
-// check if it is the correct item by going into the tag and station
+  Serial.print("Tag detected: ");
+  Serial.println(tag);
+  readLightSensorValues();  // Read the light sensors at the stations
+  Serial.print("Recycling station value: ");
+  Serial.println(recyclingStationValue);
+  if (tag == "13205111514375") {
+    tft.fillScreen(0x0000);
+    showText("You found the milk");
+    delay(2000);
+    tft.fillScreen(0x0000);
   }
-  
-  
+  if (recyclingStationValue <= 150) {  // TODO: Fix value
+    // item arrived at recylcing station
+    // check if it is the correct item by going into the tag and station
+    Serial.println("Item found on recycling station");
+    for (int i = 0; i < PRODUCT_COUNT; i += 1) {
+      Serial.print("Databse search for: ");
+      Serial.println(products[i].id);
+      if (products[i].id == tag) {
+        
+        Serial.print("This is what I found in the databse: ");
+        Serial.println(products[i].name);
+      }
+    }    
+  }
 }
 
 
@@ -284,7 +311,9 @@ void setupLightSensors() {
 /* Initialize product array */
 void setupProductArray() {
   // std::map<int, char> products;
-  // products[000] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");
+
+
+  // products[0] = Product(123, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");
   // Product products[10] = Product(000, "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of");  // Create array of products with max size of 10
 }
 
@@ -296,7 +325,8 @@ void startUpScreen() {
 
 /* Shows text on screen in white */
 void showText(char *text) {
-  tft.setCursor(0, 0);
+  tft.setCursor(10, 10);
+  tft.setTextSize(2);
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextWrap(true);
   tft.print(text);
