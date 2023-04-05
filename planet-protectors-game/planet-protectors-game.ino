@@ -75,7 +75,11 @@ int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
 
-int lightlevel = 50;
+int lightlevel = 200;
+
+/* LED setup */
+#define redLED 7
+#define greenLED 6
 
 
 /* Product class and array */
@@ -105,7 +109,7 @@ public:
 
 // Array of products that are used with id being the RFID-tag number
 Product products[] = {
-  Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
+  Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
   Product("132051153205227", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
   Product("123", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
 };
@@ -134,6 +138,7 @@ void setup(void) {
   startUpScreen();      // Show the logo at start
   setupRFID();          // Initialize the RFID scanner
   setupLightSensors();  // Initialize light sensors
+  setupLEDs();          // Initialize green and red LED
 
   clearDisplay();  // Clears the statup image from the screen
   // Start with the interactions
@@ -163,6 +168,11 @@ void loop() {
     productIndex = getProductIndex();  // Search for tag number in array
     Serial.print("This is what I found in the databse: ");
     Serial.print(productIndex);
+    clearDisplay();
+    tft.setCursor(10, 10);
+    clearDisplay();
+    tft.print("You found: " + products[productIndex].name);
+    delay(2000);
     // Serial.println(products[productIndex].name);
   }
 
@@ -217,7 +227,7 @@ void loop() {
     }
   }
 
-  showScanItem();
+  // showScanItem();
 }
 
 // Search for the product in the array
@@ -229,7 +239,7 @@ int getProductIndex() {
       return i;
     }
   }
-  return 99;
+  return 99;  // If current tag was not found in array return 99
 }
 
 // Handle the hints when user makes error
@@ -273,6 +283,12 @@ void setupLightSensors() {
   pinMode(charmStationPin, INPUT);
 }
 
+/* Initialize LEDs */
+void setupLEDs() {
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+}
+
 /* Show the startup screen logo */
 void startUpScreen() {
   // show bitmap logo here
@@ -298,6 +314,7 @@ void readLightSensorValues() {
 // DISPLAY
 
 void showScanItem() {
+  clearDisplay();
   showText("Scan item at home");
 }
 
@@ -306,8 +323,10 @@ void showCorrect(int points) {
 
   // Show correct on screen
   tft.setTextSize(3);
+  digitalWrite(greenLED, HIGH);
   showText("CORRECT!");
-  delay(1000);
+  delay(3000);
+  digitalWrite(greenLED, LOW);
   clearDisplay();
 
   // Show points won on screen
@@ -329,44 +348,65 @@ void showCorrect(int points) {
   tft.println("Total points:");
   tft.setCursor(10, 50);
   tft.print(overallPoints);
-  delay(3000);
+
+  while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show hint as long as item is on statiion
+    delay(1000);
+    readLightSensorValues();
+  }
+
+  delay(1000);
   clearDisplay();
+  showScanItem();
 }
 
 void showWrong(bool firstTry, int product) {
   clearDisplay();
   tft.setTextSize(3);
+  digitalWrite(redLED, HIGH);
   showText("TRY AGAIN!");
-  delay(1000);
+  delay(3000);
+  digitalWrite(redLED, LOW);
   clearDisplay();
+
   tft.setTextSize(2);
   tft.setTextWrap(true);
-  String text = "Hint: ";
+  String text;
   Serial.print(products[product].hint2);
   if (firstTry) {
-    text += products[product].hint1;
+    text = products[product].hint1;
   } else {
-    text += products[product].hint2;
+    text = products[product].hint2;
   }
+  Serial.print("Print hint: ");
+  Serial.println(text);
+  tft.println("Hint: ");
   tft.print(text);
 
   while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show hint as long as item is on statiion
     delay(1000);
     readLightSensorValues();
-    Serial.println(recyclingStationValue);
   }
 
+  delay(1000);
   clearDisplay();
+  showScanItem();
 }
 
 void showFinallyWrong() {
   clearDisplay();
 
   tft.setTextSize(3);
-  tft.setTextWrap(true);
+  digitalWrite(redLED, HIGH);
   showText("Sorry, this is not correct!");
-  delay(4000);
+
+  while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show message as long as item is on statiion
+    delay(1000);
+    readLightSensorValues();
+  }
+  delay(1000);
+  digitalWrite(redLED, LOW);
   clearDisplay();
+  showScanItem();
 }
 
 // HELP FUNCTIONS DISPLAY
