@@ -75,7 +75,7 @@ int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
 
-int lightlevel = 35;
+int lightlevel = 50;
 
 
 /* Product class and array */
@@ -111,6 +111,7 @@ Product products[] = {
 };
 
 /* Game logic */
+int productIndex = 99;
 int currentTries = 0;
 int overallPoints = 0;
 
@@ -153,10 +154,16 @@ void loop() {
   String scannerValue = myRfid.getTag();  // Read scanner data
   Serial.print(scannerValue);
 
+  // Saves active product into the currentTag variable
   if (scannerValue != "000000") {
     currentTag = scannerValue;
     Serial.print("Tag detected: ");
     Serial.println(currentTag);
+
+    productIndex = getProductIndex();  // Search for tag number in array
+    Serial.print("This is what I found in the databse: ");
+    Serial.print(productIndex);
+    // Serial.println(products[productIndex].name);
   }
 
   readLightSensorValues();  // Read the light sensors at the stations
@@ -173,31 +180,40 @@ void loop() {
     // item arrived at recylcing station
     Serial.println("Item found on recycling station");
     // check if it is the correct item by going into the tag and station
-    for (int i = 0; i < PRODUCT_COUNT; i += 1) {  // Go through all items in array to search for the currentTag
-      if (products[i].id == currentTag) {
+    // for (int i = 0; i < PRODUCT_COUNT; i += 1) {  // Go through all items in array to search for the currentTag
+    //   if (products[i].id == currentTag) {
 
-        Serial.print("This is what I found in the databse: ");
-        Serial.println(products[i].name);
+    //     Serial.print("This is what I found in the databse: ");
+    //     Serial.println(products[i].name);
 
-        if (products[i].station == 1) {   // Check if the recycling station is the correct placement
-          showCorrect(3 - currentTries);  // Shows the points minus the tries the user needed to get there
-          currentTries = 0;               // Reset the try counter
-        } else {
-          handleHints(i);
-        }
+    //     if (products[i].station == 1) {   // Check if the recycling station is the correct placement
+    //       showCorrect(3 - currentTries);  // Shows the points minus the tries the user needed to get there
+    //       currentTries = 0;               // Reset the try counter
+    //     } else {
+    //       handleHints(i);
+    //     }
+    //   }
+    // }
+    if (productIndex != 99) {                     // If item was found in array
+      if (products[productIndex].station == 1) {  // Check if the landfill station is the correct placement
+        showCorrect(3 - currentTries);            // Shows the points minus the tries the user needed to get there
+        currentTries = 0;                         // Reset the try counter
+      } else {
+        handleHints(productIndex);
       }
     }
   }
 
   if (landfillStationValue <= lightlevel) {
     Serial.println("Item found on landfill station");
-    int productIndex = getProductIndex();
 
-    if (products[productIndex].station == 2) {  // Check if the landfill station is the correct placement
-      showCorrect(3 - currentTries);            // Shows the points minus the tries the user needed to get there
-      currentTries = 0;                         // Reset the try counter
-    } else {
-      handleHints(productIndex);
+    if (productIndex != 99) {                     // If item was found in array
+      if (products[productIndex].station == 2) {  // Check if the landfill station is the correct placement
+        showCorrect(3 - currentTries);            // Shows the points minus the tries the user needed to get there
+        currentTries = 0;                         // Reset the try counter
+      } else {
+        handleHints(productIndex);
+      }
     }
   }
 
@@ -207,10 +223,13 @@ void loop() {
 // Search for the product in the array
 int getProductIndex() {
   for (int i = 0; i < PRODUCT_COUNT; i += 1) {  // Go through all items in array to search for the currentTag
+    Serial.print("Current ID check: ");
+    Serial.println(products[i].id);
     if (products[i].id == currentTag) {
       return i;
     }
   }
+  return 99;
 }
 
 // Handle the hints when user makes error
@@ -268,8 +287,11 @@ void readLightSensorValues() {
   charmStationValue = analogRead(charmStationPin);
   Serial.print("Light sensor values: ");
   Serial.print(recyclingStationValue);
+  Serial.print("; ");
   Serial.print(landfillStationValue);
+  Serial.print("; ");
   Serial.print(compostStationValue);
+  Serial.print("; ");
   Serial.println(charmStationValue);
 }
 
@@ -324,13 +346,11 @@ void showWrong(bool firstTry, int product) {
   if (firstTry) {
     text += products[product].hint1;
   } else {
-    Serial.println("ELSE BLOOOOCK.");
     text += products[product].hint2;
-    // text += products[product].hint2;
   }
   tft.print(text);
 
-  while (recyclingStationValue <= lightlevel) {  // Show hint as long as item is on statiion
+  while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show hint as long as item is on statiion
     delay(1000);
     readLightSensorValues();
     Serial.println(recyclingStationValue);
