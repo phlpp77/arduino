@@ -57,12 +57,14 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 Qwiic_Rfid myRfid(RFID_ADDR);  // Create the RFID reader object
 String currentTag;             // Create variable to hold current tag number
+int serialInput;
+bool state;
 
 
 /* Light sensor setup */
 
 // Set analog pins to receive the lightsensor data
-#define recyclingStationPin A0 
+#define recyclingStationPin A0
 #define landfillStationPin A1
 #define compostStationPin A2
 #define charmStationPin A3
@@ -72,6 +74,8 @@ int recyclingStationValue = 0;
 int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
+
+int lightlevel = 35;
 
 
 /* Product class and array */
@@ -97,14 +101,18 @@ public:
   }
 };
 
-#define PRODUCT_COUNT 3 // Array lengeth - amount of products we use
+#define PRODUCT_COUNT 3  // Array lengeth - amount of products we use
 
 // Array of products that are used with id being the RFID-tag number
 Product products[] = {
   Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
-  Product("132051153205227", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
+  Product("132051153205227", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
   Product("123", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
 };
+
+/* Game logic */
+int currentTries = 0;
+int overallPoints = 0;
 
 
 /* Setup when Arudino starts */
@@ -120,7 +128,6 @@ void setup(void) {
   delay(500);
 
 
-
   // PROGRAM START
 
   startUpScreen();      // Show the logo at start
@@ -129,24 +136,29 @@ void setup(void) {
 
   clearDisplay();  // Clears the statup image from the screen
   // Start with the interactions
-  showText("Scan first item at home");
+  showScanItem();
 }
 
 
 /* Main game logic loop */
 void loop() {
-  tft.invertDisplay(true);
-  delay(500);
-  tft.invertDisplay(false);
-  delay(500);
+  // tft.invertDisplay(true);
+  // delay(500);
+  // tft.invertDisplay(false);
+  // delay(500);
+  // Serial.print("loop");
+  delay(1000);
+
 
   String scannerValue = myRfid.getTag();  // Read scanner data
+  Serial.print(scannerValue);
 
   if (scannerValue != "000000") {
     currentTag = scannerValue;
     Serial.print("Tag detected: ");
     Serial.println(currentTag);
   }
+
   readLightSensorValues();  // Read the light sensors at the stations
 
   // if (currentTag == "13205111514375") {
@@ -157,7 +169,7 @@ void loop() {
   // }
 
   /* Check recycling station */
-  if (recyclingStationValue <= 50) {
+  if (recyclingStationValue <= lightlevel) {
     // item arrived at recylcing station
     Serial.println("Item found on recycling station");
     // check if it is the correct item by going into the tag and station
@@ -167,17 +179,60 @@ void loop() {
         Serial.print("This is what I found in the databse: ");
         Serial.println(products[i].name);
 
-        if (products[i].station == 1) {  // Check if the recycling station is the correct placement
-          showCorrect(3);
+        if (products[i].station == 1) {   // Check if the recycling station is the correct placement
+          showCorrect(3 - currentTries);  // Shows the points minus the tries the user needed to get there
+          currentTries = 0;               // Reset the try counter
         } else {
-          showWrong(true, i);
+          handleHints(i);
         }
       }
     }
   }
+
+  if (landfillStationValue <= lightlevel) {
+    Serial.println("Item found on landfill station");
+    int productIndex = getProductIndex();
+
+    if (products[productIndex].station == 2) {  // Check if the landfill station is the correct placement
+      showCorrect(3 - currentTries);            // Shows the points minus the tries the user needed to get there
+      currentTries = 0;                         // Reset the try counter
+    } else {
+      handleHints(productIndex);
+    }
+  }
+
+  showScanItem();
 }
 
+// Search for the product in the array
+int getProductIndex() {
+  for (int i = 0; i < PRODUCT_COUNT; i += 1) {  // Go through all items in array to search for the currentTag
+    if (products[i].id == currentTag) {
+      return i;
+    }
+  }
+}
 
+// Handle the hints when user makes error
+void handleHints(int product) {
+  Serial.print("The item is not correct here. Number of tries: ");
+  Serial.println(currentTries);
+  // Check how many times the user made an error
+  switch (currentTries) {
+    case 0:                      // First try
+      showWrong(true, product);  // Show frist hint
+      currentTries += 1;
+      break;
+    case 1:                       // Second try
+      showWrong(false, product);  // Show second hint
+      currentTries += 1;
+      break;
+    case 2:                // Third try
+      showFinallyWrong();  // Show that the user was finally wrong
+      currentTries = 0;
+      break;
+  }
+}
 
 /* Initialize RFID scanner */
 void setupRFID() {
@@ -189,8 +244,6 @@ void setupRFID() {
     Serial.println("Ready to scan some tags!");
   else
     Serial.println("Could not communicate with Qwiic RFID!");
-
-  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 /* Initialize light sensors */
@@ -213,25 +266,53 @@ void readLightSensorValues() {
   landfillStationValue = analogRead(landfillStationPin);
   compostStationValue = analogRead(compostStationPin);
   charmStationValue = analogRead(charmStationPin);
+  Serial.print("Light sensor values: ");
+  Serial.print(recyclingStationValue);
+  Serial.print(landfillStationValue);
+  Serial.print(compostStationValue);
+  Serial.println(charmStationValue);
 }
 
 // DISPLAY
+
+void showScanItem() {
+  showText("Scan item at home");
+}
+
 void showCorrect(int points) {
+  clearDisplay();
+
+  // Show correct on screen
   tft.setTextSize(3);
   showText("CORRECT!");
   delay(1000);
   clearDisplay();
+
+  // Show points won on screen
   tft.setTextSize(2);
-  tft.setTextWrap(true);
-  String text = "You got " + points;
-  // text += points;
-  text += "/3 points!";
-  tft.print(text);
-  delay(2000);
+  tft.setCursor(10, 10);
+  tft.println("You got");
+  tft.setCursor(10, 30);
+  tft.print(points);
+  tft.println("/3");
+  tft.setCursor(10, 50);
+  tft.print("points!");
+  delay(3000);
+  clearDisplay();
+
+  overallPoints += points;  // Add points to overall point counter
+
+  // Show new total points on screen
+  tft.setCursor(10, 10);
+  tft.println("Total points:");
+  tft.setCursor(10, 50);
+  tft.print(overallPoints);
+  delay(3000);
   clearDisplay();
 }
 
 void showWrong(bool firstTry, int product) {
+  clearDisplay();
   tft.setTextSize(3);
   showText("TRY AGAIN!");
   delay(1000);
@@ -239,19 +320,32 @@ void showWrong(bool firstTry, int product) {
   tft.setTextSize(2);
   tft.setTextWrap(true);
   String text = "Hint: ";
+  Serial.print(products[product].hint2);
   if (firstTry) {
     text += products[product].hint1;
   } else {
+    Serial.println("ELSE BLOOOOCK.");
     text += products[product].hint2;
+    // text += products[product].hint2;
   }
   tft.print(text);
 
-  while (recyclingStationValue <= 50) {
+  while (recyclingStationValue <= lightlevel) {  // Show hint as long as item is on statiion
     delay(1000);
     readLightSensorValues();
     Serial.println(recyclingStationValue);
   }
 
+  clearDisplay();
+}
+
+void showFinallyWrong() {
+  clearDisplay();
+
+  tft.setTextSize(3);
+  tft.setTextWrap(true);
+  showText("Sorry, this is not correct!");
+  delay(4000);
   clearDisplay();
 }
 
