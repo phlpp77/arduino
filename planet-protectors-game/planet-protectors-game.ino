@@ -160,7 +160,13 @@ void loop() {
     Serial.print(products[productIndex].name);
     clearDisplay();
     tft.setCursor(10, 10);
-    tft.print("You found: " + products[productIndex].name);  // Print item name on screen
+    tft.print("You found");  // Print item name on screen
+    tft.setCursor(10, 30);
+    tft.print(products[productIndex].name);
+    tft.setCursor(10, 70);
+    tft.print("Please,");
+    tft.setCursor(10, 90);
+    tft.print("dispose!");
     delay(2000);
   }
 
@@ -326,8 +332,9 @@ void showCorrect(int points) {
 
   // Show new total points on screen
   tft.setCursor(10, 10);
-  tft.println("Total points:");
-  tft.setCursor(10, 50);
+  tft.print("Overall");
+  tft.setCursor(10, 30);
+  tft.print("points:");
   tft.print(overallPoints);
 
   while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show points as long as item is placed
@@ -345,7 +352,7 @@ void showWrong(bool firstTry, int product) {
   clearDisplay();
   tft.setTextSize(3);
   digitalWrite(redLED, HIGH);
-  showText("TRY AGAIN!");
+  showText("TRY AGAIN");
   delay(3000);
   digitalWrite(redLED, LOW);
   clearDisplay();
@@ -368,18 +375,32 @@ void showWrong(bool firstTry, int product) {
     readLightSensorValues();
   }
 
+// Write: Try another station!
   delay(1000);
   clearDisplay();
-  showText("Try another station.");
+  tft.setCursor(10, 10);
+  tft.print("Try");
+  tft.setCursor(10, 30);
+  tft.print("another");
+  tft.setCursor(10, 50);
+  tft.print("station!");
 }
 
 /* Show that last try was still wrong */
 void showFinallyWrong() {
   clearDisplay();
 
-  tft.setTextSize(3);
+  // Write: Sorry! This is not correct.
   digitalWrite(redLED, HIGH);
-  showText("Sorry, this is not correct!");
+  tft.setTextSize(2);
+  tft.setCursor(10, 10);
+  tft.print("Sorry!");
+  tft.setCursor(10, 30);
+  tft.print("This is");
+  tft.setCursor(10, 50);
+  tft.print("not");
+  tft.setCursor(10, 70);
+  tft.print("correct.");
 
   while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel) {  // Show message as long as item is on statiion
     delay(1000);
