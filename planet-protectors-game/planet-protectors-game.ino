@@ -109,9 +109,15 @@ public:
 
 // Array of products that are used with id being the RFID-tag number
 Product products[] = {
-  Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
-  Product("132051153205227", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
-  Product("123", "Milk", 1, "This item is made from paper and plastic", "This item can be used again when correclty disposed of"),
+  Product("132051129186140", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
+  Product("13205115110472", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
+  Product("5322816722282", "Cereal", 1, "This item is made from cardboard", "This item can be used again when correclty disposed of"),
+  Product("13205111514375","Peanut butter",1,"This item is made from plastic","This item can be used again when correclty disposed of"),
+  Product("5322812843128","Battery",4,"This item contains hazardus waste","This item is hard to recycle "),
+  // Product("","Granola bar wrapper",1,"",""),
+  // Product("","",1,"",""),
+  // Product("","",1,"",""),
+
 };
 
 /* Game logic variables */
@@ -157,6 +163,7 @@ void loop() {
 
     productIndex = getProductIndex();  // Search for tag number in array
     Serial.print("This is what I found in the databse: ");
+    Serial.print(productIndex);
     Serial.print(products[productIndex].name);
     clearDisplay();
     tft.setCursor(10, 10);
