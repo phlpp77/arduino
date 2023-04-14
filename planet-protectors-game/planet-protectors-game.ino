@@ -7,18 +7,6 @@
     ----> https://www.adafruit.com/product/802
   The 1.44" TFT breakout
     ----> https://www.adafruit.com/product/2088
-  The 1.14" TFT breakout
-  ----> https://www.adafruit.com/product/4383
-  The 1.3" TFT breakout
-  ----> https://www.adafruit.com/product/4313
-  The 1.54" TFT breakout
-    ----> https://www.adafruit.com/product/3787
-  The 1.69" TFT breakout
-    ----> https://www.adafruit.com/product/5206
-  The 2.0" TFT breakout
-    ----> https://www.adafruit.com/product/4311
-  as well as Adafruit raw 1.8" TFT display
-    ----> http://www.adafruit.com/products/618
 
   Check out the links above for our tutorials and wiring diagrams.
   These displays use SPI to communicate, 4 or 5 pins are required to
@@ -75,7 +63,7 @@ int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
 
-int lightlevel = 80;
+int lightlevel = 45;
 
 /* LED setup */
 #define redLED 7
@@ -105,19 +93,30 @@ public:
   }
 };
 
-#define PRODUCT_COUNT 3  // Array lengeth - amount of products we use
+#define PRODUCT_COUNT 9  // Array lengeth - amount of products we use
 
 // Array of products that are used with id being the RFID-tag number
 Product products[] = {
-  Product("132051129186140", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
-  Product("13205115110472", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
-  Product("5322816722282", "Cereal", 1, "This item is made from cardboard", "This item can be used again when correclty disposed of"),
-  Product("13205111514375","Peanut butter",1,"This item is made from plastic","This item can be used again when correclty disposed of"),
-  Product("5322812843128","Battery",4,"This item contains hazardus waste","This item is hard to recycle "),
-  // Product("","Granola bar wrapper",1,"",""),
-  // Product("","",1,"",""),
-  // Product("","",1,"",""),
-
+  Product("4224317959177", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
+  Product("13205115110472", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
+  Product("13205111514375", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
+  Product("42243114578", "Milk", 1, "This item is made from paper and plastic", "This item can be used again"),
+  Product("5322812843128", "Milk", 1, "Tf", "t"),
+  Product("5322812843128", "Milk", 1, "ert", "Tfs"),
+  Product("5322812843128", "Milk", 1, "T3", "23"),
+  Product("5322812843128", "Milk", 1, "12", "re"),
+  Product("5322812843128", "Milk", 1, "T12", "d"),
+  // Product("13205115110472", "Strawberry Jam", 2, "This item is made from paper and plastic", "This item can be used again"),
+  // Product("13205111514375", "Cereal", 1, "This item is made from cardboard", "This item can be used again when correclty disposed of"),
+  // Product("42243114578", "Peanut butter", 1, "This item is made from plastic", "This item can be used again when correclty disposed of"),
+  // Product("5322812843128", "Battery", 4, "This item contains hazardus waste", "This item is hard to recycle "),
+  // Product("5322815818413","Granola bar wrapper",1,"This item is made from plastic","This item can NOT be used again when correclty disposed of"),
+  // Product("422431138630","Coffee Cup",1,"This item is made from paper and plastic","This item can be used again when correclty disposed of"),
+  // Product("42244133105210","Soda can",1,"This item is made from aluminum","This item can be used again when correclty disposed of"),
+  //Product("421210235163139","Apple",3,"This item is grown from the ground","This item can decompose easily (when put back in the ground/when broken down?)"),
+  // Product("","",,"",""),
+  // Product("","",,"",""),
+  // Product("","",,"",""),
 };
 
 /* Game logic variables */
@@ -150,33 +149,39 @@ void setup(void) {
 /* Main game logic loop */
 void loop() {
 
-  delay(1000);
-
   String scannerValue = myRfid.getTag();  // Read scanner data
-  Serial.print(scannerValue);
+  //Serial.print("Scanner: ");
+  //Serial.println(scannerValue);
+  // Serial.println(products[PRODUCT_COUNT].id);
+
+  delay(250);
 
   // Saves active product into the currentTag variable
-  if (scannerValue != "000000") {  // Check if tag is on scanner
+  if (scannerValue != "00000") {  // Check if tag is on scanner
     currentTag = scannerValue;     // Save value to current Tag
     Serial.print("Tag detected: ");
     Serial.println(currentTag);
 
     productIndex = getProductIndex();  // Search for tag number in array
-    Serial.print("This is what I found in the databse: ");
-    Serial.print(productIndex);
-    Serial.print(products[productIndex].name);
-    clearDisplay();
-    tft.setCursor(10, 10);
-    tft.print("You found");  // Print item name on screen
-    tft.setCursor(10, 30);
-    tft.print(products[productIndex].name);
-    tft.setCursor(10, 70);
-    tft.print("Please,");
-    tft.setCursor(10, 90);
-    tft.print("dispose!");
-    delay(2000);
+    if (productIndex != 99) {
+      Serial.print("This is what I found in the databse: ");
+      Serial.print(productIndex);
+      Serial.println(products[productIndex].name);
+      clearDisplay();
+      tft.setCursor(10, 10);
+      tft.print("You found");  // Print item name on screen
+      tft.setCursor(10, 30);
+      tft.print(products[productIndex].name);
+      tft.setCursor(10, 70);
+      tft.print("Please,");
+      tft.setCursor(10, 90);
+      tft.print("dispose!");
+      delay(2000);
+    } else {
+      Serial.println("Nope!");
+    }
   }
-
+  /*
   readLightSensorValues();  // Read the light sensors at the stations
 
   // Checking stations
@@ -198,7 +203,7 @@ void loop() {
   if (charmStationValue <= lightlevel) {  // Check for item at charm station
     Serial.println("Item found on charm station");
     checkCorrect(productIndex, 4);  // Check if the item is correctly disposed at charm station
-  }
+  } */
 }
 
 
@@ -207,6 +212,7 @@ void loop() {
 /* Search for the product in the array */
 int getProductIndex() {
   for (int i = 0; i < PRODUCT_COUNT; i += 1) {  // Go through all items in array to search for the currentTag
+    delay(10);
     Serial.print("Current ID check: ");
     Serial.println(products[i].id);
     if (products[i].id == currentTag) {  // Check if element is the current tag
@@ -382,7 +388,7 @@ void showWrong(bool firstTry, int product) {
     readLightSensorValues();
   }
 
-// Write: Try another station!
+  // Write: Try another station!
   delay(1000);
   clearDisplay();
   tft.setCursor(10, 10);
