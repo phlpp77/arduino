@@ -63,7 +63,7 @@ int landfillStationValue = 0;
 int compostStationValue = 0;
 int charmStationValue = 0;
 
-int lightlevel = 150;
+int lightlevel = 20;
 
 /* LED setup */
 #define redLED 7
@@ -107,7 +107,7 @@ Product products[PRODUCT_COUNT] = {
   Product("5322812843128", "Battery", 4, "This item contains \nhazardus \nwaste", "This item is hard to\nrecycle"),
   Product("422431138630", "Coffee \n Cup", 1, "This item is made from paper and plastic", "This item can be \nused again\nwhen cor-\nrectly \ndisposed"),
   Product("42244133105210", "Soda can", 1, "This item is made from aluminum", "This item can be \nused again\nwhen cor-\nrectly \ndisposed"),
-  Product("5322815818413", "Granolabar \n Wrapper", 2, "This item is made from plastic", "This item can NOT be used again when correclty disposed"),
+  Product("5322815818413", "Granola \n Wrapper", 2, "This item is made from plastic", "This item can NOT be used again when correclty disposed"),
   Product("421210235163139", "Apple", 3, "This item is grown\nfrom the\nground", "This item can decompose easily\n(when put\nback on the ground)"),
   Product("5322816722282", "Banana", 3, "This item is grown\nfrom the\nground", "This item can decompose easily\n(when put\nback on the ground)"),
   Product("132051129186140", "Plastic \n Fork", 2, "This item is made from plastic", "This item can NOT be used again when correclty disposed"),
@@ -289,7 +289,7 @@ void setupLightSensors() {
   readLightSensorValues();
   int lightLevelSum = recyclingStationValue + landfillStationValue + compostStationValue + charmStationValue;
   int averageLightLevel = lightLevelSum / 4;
-  lightlevel = averageLightLevel - 50;
+  // lightlevel = averageLightLevel - 50;
   Serial.print("Light level adapted to environment: ");
   Serial.println(lightlevel);
 }
@@ -432,6 +432,13 @@ void showFinallyWrong() {
   tft.print("not");
   tft.setCursor(10, 70);
   tft.print("correct.");
+  tft.setCursor(10, 90);
+  tft.print("Try new");
+  tft.setCursor(10, 110);
+  tft.print("item!");
+
+  currentTag = "000000";    // Reset the current tag
+  productIndex = 99;        // Reset the product index
 
   while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel || compostStationValue <= lightlevel || charmStationValue <= lightlevel) {  // Show message as long as item is on statiion
     delay(1000);
