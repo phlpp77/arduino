@@ -138,7 +138,6 @@ void setup(void) {
 
   // Start with game
   clearDisplay();  // Clears the startup image from the screen
-  tft.print("Test");
   showScanItem();  // Start with the interactions
 }
 
@@ -148,7 +147,7 @@ void loop() {
 
   String scannerValue = myRfid.getTag();  // Read scanner data
 
-  delay(250);
+  delay(250);  // Delay needed for RFID Scanner
 
   // Saves active product into the currentTag variable
   if (scannerValue != "000000") {  // Check if tag is on scanner
@@ -157,13 +156,14 @@ void loop() {
     Serial.println(currentTag);
 
     productIndex = getProductIndex();  // Search for tag number in array
-    if (productIndex != 99) {
+    if (productIndex != 99) {          // When the product was found in the database
       Serial.print("This is what I found in the databse: ");
-      Serial.print(productIndex);
       Serial.println(products[productIndex].name);
       clearDisplay();
+
+      // Print item name on screen
       tft.setCursor(10, 10);
-      tft.print("You found");  // Print item name on screen
+      tft.print("You found");
       tft.setCursor(10, 30);
       tft.print(products[productIndex].name);
       tft.setCursor(10, 70);
@@ -172,7 +172,7 @@ void loop() {
       tft.print("dispose!");
       delay(2000);
     } else {
-      Serial.println("Nope!");
+      Serial.println("No matching item was found in the database");
     }
   }
 
@@ -218,12 +218,12 @@ int getProductIndex() {
 
 /* Check if something was correctly placed */
 void checkCorrect(int product, int station) {
-  if (product != 99) {                           // Check if item was found in array
+  if (product != 99) {                           // Check if item was found in array (maybe not needed anymore because checked in code above as well)
     if (products[product].station == station) {  // Check if the station is correct
       showCorrect(3 - currentTries);             // Shows the points minus the tries the user needed to get there
       currentTries = 0;                          // Reset the try counter
-    } else {
-      handleHints(product);  // Handles wrong answers and gives hints
+    } else {                                     // Show hints if not correct
+      handleHints(product);                      // Handles wrong answers and gives hints
     }
   }
 }
@@ -255,6 +255,8 @@ void readLightSensorValues() {
   landfillStationValue = analogRead(landfillStationPin);
   compostStationValue = analogRead(compostStationPin);
   charmStationValue = analogRead(charmStationPin);
+
+  // Just printing the values for debugging
   Serial.print("Light sensor values: ");
   Serial.print(recyclingStationValue);
   Serial.print("; ");
@@ -274,8 +276,8 @@ void setupRFID() {
   Wire.begin();
   Serial.begin(115200);
 
-  if (myRfid.begin())
-    Serial.println("Ready to scan some tags!");
+  if (myRfid.begin()) // Start the RFID scanner 
+    Serial.println("RFID scanner started correctly");
   else
     Serial.println("Could not communicate with Qwiic RFID!");
 }
@@ -286,9 +288,11 @@ void setupLightSensors() {
   pinMode(landfillStationPin, INPUT);
   pinMode(compostStationPin, INPUT);
   pinMode(charmStationPin, INPUT);
-  readLightSensorValues();
-  int lightLevelSum = recyclingStationValue + landfillStationValue + compostStationValue + charmStationValue;
-  int averageLightLevel = lightLevelSum / 4;
+  
+  // Calculating the average light level - not needed anymore
+  // readLightSensorValues();
+  // int lightLevelSum = recyclingStationValue + landfillStationValue + compostStationValue + charmStationValue;
+  // int averageLightLevel = lightLevelSum / 4;
   // lightlevel = averageLightLevel - 50;
   Serial.print("Light level adapted to environment: ");
   Serial.println(lightlevel);
@@ -437,8 +441,8 @@ void showFinallyWrong() {
   tft.setCursor(10, 110);
   tft.print("item!");
 
-  currentTag = "000000";    // Reset the current tag
-  productIndex = 99;        // Reset the product index
+  currentTag = "000000";  // Reset the current tag
+  productIndex = 99;      // Reset the product index
 
   while (recyclingStationValue <= lightlevel || landfillStationValue <= lightlevel || compostStationValue <= lightlevel || charmStationValue <= lightlevel) {  // Show message as long as item is on statiion
     delay(1000);
@@ -467,6 +471,7 @@ void showText(char *text) {
   tft.print(text);
 }
 
+/* Show the triangle startup animation */
 void startUpAnimation() {
   for (int i = 0; i <= 3; i++) {
     tft.fillScreen(ST77XX_BLACK);
